@@ -15,6 +15,7 @@ if exist %systemdrive%%homepath%\InfoCreeper\InfoCreeper.exe (
     call pip install -r requirements.txt
     pyinstaller --name InfoCreeper --console --onefile --clean --distpath %systemdrive%%homepath%\InfoCreeper --icon icon.ico  --windowed main.py
     copy icon.ico %systemdrive%%homepath%\InfoCreeper\
+    copy config.yml %systemdrive%%homepath%\InfoCreeper\
     rd /s/q "build"
     rd /s/q "__pycache__"
     del InfoCreeper.spec

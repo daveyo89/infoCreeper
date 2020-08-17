@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import *
 from tkinter import messagebox, ttk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
+from tkinter.ttk import Combobox
+
+import yaml
 
 import Scraper
 
@@ -9,7 +12,9 @@ import Scraper
 class Window:
 
     def __init__(self):
-        self.get_info = self.get_info()
+        self.scraper = Scraper.Scraper()
+        self.get_specs = self.get_specs(self.get_config(0))
+        self.get_info = self.scraper.get_info(self.get_specs)
         self.master = tk.Tk()
         self.container = ttk.Frame(self.master)
         self.canvas = tk.Canvas(self.container, width=400,height=400)
@@ -26,10 +31,15 @@ class Window:
         self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        # self.txt_edit = tk.Text(self.master)
+
+        choices = [x for x in (enumerate(self.read_yml()))]
+        variable = StringVar(self.master)
+
+        w = OptionMenu(self.master, variable, *choices)
+        w.pack()
 
         self.app_ui_buttons()
-        self.app_ui_table()
+        self.app_ui_table(self.get_info)
 
         self.canvas.pack(side="left", fill="both", expand=True)
         self.container.pack(side="left", fill="both", expand=True)
@@ -42,60 +52,47 @@ class Window:
     def app_ui_buttons(self):
         fr_buttons = tk.Frame(self.scrollable_frame, relief=tk.RAISED, bd=3)
         btn_load = tk.Button(fr_buttons, text="Load", command=self.load_info)
-        btn_open = tk.Button(fr_buttons, text="Open", command=self.open_file)
-        btn_save = tk.Button(fr_buttons, text="Save As...", command=self.save_file)
+        # btn_open = tk.Button(fr_buttons, text="Open", command=self.open_file)
+        # btn_save = tk.Button(fr_buttons, text="Save As...", command=self.save_file)
 
         btn_load.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-        btn_open.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
-        btn_save.grid(row=2, column=0, sticky="ew", padx=5)
+        # btn_open.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
+        # btn_save.grid(row=2, column=0, sticky="ew", padx=5)
         fr_buttons.grid(row=0, column=0, sticky="ns")
 
-    def app_ui_table(self):
-        fr_prices = tk.Frame(self.scrollable_frame, relief=tk.RAISED, bd=3)
-
+    def app_ui_table(self, data):
+        setattr(self, 'fr_prices', tk.Frame(self.scrollable_frame, relief=tk.RAISED, bd=3))
         number = 0
-        for i, j in self.get_info.items():
+        for i, j in data.items():
             s = StringVar()
-            Label(fr_prices, text=f"{i}: ").grid(row=number, column=1, sticky="w")
-            Entry(fr_prices, width=30, state='readonly', textvariable=s).grid(row=number, column=2)
+            Label(self.fr_prices, text=f"{i}: ").grid(row=number, column=1, sticky="w")
+            Entry(self.fr_prices, width=30, state='readonly', textvariable=s).grid(row=number, column=2)
             s.set(j)
             number += 1
-        fr_prices.grid(row=0, column=1, sticky="ns")
+        self.fr_prices.grid(row=0, column=1, sticky="ns")
 
-    @classmethod
-    def get_info(cls):
-        return Scraper.Scraper().get_info()
+    def read_yml(self):
+        with open('config.yml', 'r') as f:
+            return yaml.safe_load(f)
+
+    def get_config(self, num):
+        specs = [x for x in (enumerate(self.read_yml()))]
+        choices = [specs[x][1] for x in range(len(specs))]
+
+        return choices[num]
+
+    def get_specs(self, config):
+        return config
 
     def load_info(self):
-        # self.txt_edit.insert(tk.END, self.get_info)
+        self.fr_prices.destroy()
+        self.load_other()
         pass
-
-    def open_file(self):
-        """Open a file for editing."""
-        filepath = askopenfilename(
-            filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")]
-        )
-        if not filepath:
-            return
-        # self.txt_edit.delete(1.0, tk.END)
-        with open(filepath, "r") as input_file:
-            text = input_file.read()
-            # self.txt_edit.insert(tk.END, text)
-        self.master.title(f"Simple Text Editor - {filepath}")
-
-    def save_file(self):
-        """Save the current file as a new file."""
-        filepath = asksaveasfilename(
-            defaultextension="txt",
-            filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")],
-        )
-        if not filepath:
-            return
-        # with open(filepath, "w") as output_file:
-        #     text = self.txt_edit.get(1.0, tk.END)
-        #     output_file.write(text)
-        self.master.title(f"Simple Text Editor - {filepath}")
 
     def on_closing(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             self.master.destroy()
+
+    def load_other(self):
+        three = Scraper.Scraper().get_info(self.get_config(1))
+        return self.app_ui_table(three)

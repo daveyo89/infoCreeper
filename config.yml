@@ -1,0 +1,10 @@
+- website: https://www.mnb.hu/arfolyamok
+  parent: div
+  class: exchangeTable
+  element_type: td
+  element_classes: valutename,value
+- website: https://finance.yahoo.com/u/yahoo-finance/watchlists/420_stocks
+  parent: div
+  class: Ovx(a)
+  element_type: td
+  element_classes: data-col0 Ta(start) Pstart(6px) Pend(6px),data-col2 Ta(end) Pstart(10px) Pend(6px) Fw(b)
